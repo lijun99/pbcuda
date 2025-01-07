@@ -1,0 +1,8 @@
+name: pbcuda_env
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - pybind11
+  - cudatoolkit
+  - cmake
