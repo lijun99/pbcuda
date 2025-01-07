@@ -26,13 +26,25 @@ target_include_directories(pbcuda PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
-# Install package
-set(PBCUDA_INSTALL_DIR ${Python_SITEARCH}/pbcuda)
+# Condition to check if using skbuild
+if (SKBUILD)
+    # Install package
+   install(TARGETS pbcuda
+            LIBRARY DESTINATION .)
+    # Install __init__.py and any other Python files
+    install(FILES ${CMAKE_SOURCE_DIR}/pbcuda/__init__.py
+            DESTINATION .)
+    message(STATUS "using skbuild install.")
+else()
+    # Install package
+    set(PBCUDA_INSTALL_DIR ${Python_SITEARCH}/pbcuda)
 
-# Install compiled library
-install(TARGETS pbcuda
-        LIBRARY DESTINATION ${PBCUDA_INSTALL_DIR})
+    # Install compiled library
+    install(TARGETS pbcuda
+            LIBRARY DESTINATION ${PBCUDA_INSTALL_DIR})
 
-# Install __init__.py
-install(FILES ${CMAKE_SOURCE_DIR}/pbcuda/__init__.py
-        DESTINATION ${PBCUDA_INSTALL_DIR})
+    # Install __init__.py
+    install(FILES ${CMAKE_SOURCE_DIR}/pbcuda/__init__.py
+            DESTINATION ${PBCUDA_INSTALL_DIR})
+    message(STATUS "not using skbuild, standard install.")
+endif()
