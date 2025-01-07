@@ -29,12 +29,8 @@ target_include_directories(pbcuda PRIVATE
 # Condition to check if using skbuild
 if (SKBUILD)
     # Install package
-   install(TARGETS pbcuda
-            LIBRARY DESTINATION .)
-    # Install __init__.py and any other Python files
-    install(FILES ${CMAKE_SOURCE_DIR}/pbcuda/__init__.py
-            DESTINATION .)
-    message(STATUS "using skbuild install.")
+    install(TARGETS pbcuda
+            LIBRARY DESTINATION pbcuda)
 else()
     # Install package
     set(PBCUDA_INSTALL_DIR ${Python_SITEARCH}/pbcuda)
