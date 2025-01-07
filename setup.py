@@ -10,7 +10,7 @@ cmake_args = [
 
 setup(
     name="pbcuda",
-    version="0.1.1",
+    version="0.1.2",
     description="A Python Interface to CUDA with pybind11",
     license="MIT",
     packages=find_packages(),  # Specify where to find the Python packages
