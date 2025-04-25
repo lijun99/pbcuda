@@ -1,3 +1,4 @@
 #pragma once
 
-void cuda_add(int* c, const int* a, const int* b, int size);
+template <typename T>
+void cuda_add(T* c, const T* a, const T* b, int size);

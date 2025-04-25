@@ -1,34 +1,45 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include "cuda_module.h"
+#include <iostream>
 
 namespace py = pybind11;
 
-void py_cuda_add(py::array_t<int> a, py::array_t<int> b, py::array_t<int> c) {
-    auto a_buf = a.unchecked<1>();
-    auto b_buf = b.unchecked<1>();
-    auto c_buf = c.mutable_unchecked<1>();
+template <typename T>
+py::array_t<T> add_array_typed(const py::array_t<T>& a, const py::array_t<T>& b)
+{
+    py::buffer_info a_info = a.request();
+    py::buffer_info b_info = b.request();
 
-    int size = a_buf.size();
-    std::vector<int> host_a(size);
-    std::vector<int> host_b(size);
-    std::vector<int> host_c(size);
-
-    // Copy input arrays to host vectors
-    for (int i = 0; i < size; i++) {
-        host_a[i] = a_buf(i);
-        host_b[i] = b_buf(i);
-    }
+    auto c = py::array_t<T>(a_info.shape);
+    py::buffer_info c_info = c.request();
 
     // Call CUDA function
-    cuda_add(host_c.data(), host_a.data(), host_b.data(), size);
+    cuda_add<T>(static_cast<T*>(c_info.ptr), static_cast<const T*>(a_info.ptr), static_cast<const T*>(b_info.ptr), c_info.size);
 
-    // Copy result back to output array
-    for (int i = 0; i < size; i++) {
-        c_buf(i) = host_c[i];
+    return c;
+}
+
+
+py::array py_add_array(py::array a, py::array b) {
+    if (!py::array::ensure(a) || !py::array::ensure(b)) {
+        throw std::runtime_error("Invalid array inputs");
+    }
+
+    if (a.dtype().is(py::dtype::of<float>())) {
+        return add_array_typed<float>(a.cast<py::array_t<float>>(), b.cast<py::array_t<float>>());
+    } else if (a.dtype().is(py::dtype::of<double>())) {
+        return add_array_typed<double>(a.cast<py::array_t<double>>(), b.cast<py::array_t<double>>());
+    } else if (a.dtype().is(py::dtype::of<int32_t>())) {
+        return add_array_typed<int32_t>(a.cast<py::array_t<int32_t>>(), b.cast<py::array_t<int32_t>>());
+   } else if (a.dtype().is(py::dtype::of<int64_t>())) {
+        return add_array_typed<int64_t>(a.cast<py::array_t<int64_t>>(), b.cast<py::array_t<int64_t>>());
+    } else {
+        throw std::runtime_error("Unsupported data type. Supported types: float32, float64, int32, int64.");
     }
 }
 
+
 PYBIND11_MODULE(pbcuda, m) {
-    m.def("cuda_add", &py_cuda_add, "A function that adds two arrays using CUDA");
+    m.def("cuda_add", &py_add_array, "A function that adds two arrays using CUDA");
 }
